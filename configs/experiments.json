@@ -1,0 +1,146 @@
+{
+  "schema_version": "anchor-experiments-v1",
+  "expected_sweep_count": 12,
+  "expected_synthetic_workload_count": 25,
+  "data_root": "data",
+  "algorithms": ["AC", "AS", "SweepRT", "LiftedRT"],
+  "data_seeds": [0],
+  "sample_seed_id": 0,
+  "synthetic_generation": {
+    "base_config": "configs/alacarte.default.json",
+    "epsilon_alpha_policy": {
+      "type": "relative_with_absolute_floor_and_cap",
+      "relative_to_target": 0.2,
+      "relative_to_upper_margin": 0.1,
+      "absolute_floor": 0.05,
+      "absolute_cap": 5.0
+    },
+    "solver_overrides": {
+      "certification_checkpoints": 15
+    },
+    "policy_note": "Setup.md does not freeze certification tolerances; this repository uses 20% of target density with an absolute floor of 0.05, capped at 5 and at 10% of the upper-domain margin. The floor, relative tolerance, and cap make the alpha=0.1, 0.5, 500, and 1000 boundary workloads strictly certifiable within the frozen 15-checkpoint budget. Change this policy only by creating a new workload configuration identity."
+  },
+  "process_repeat_ids": [0],
+  "sweeps": [
+    {
+      "experiment_id": "Alacarte-G1-N",
+      "sweep": "N-sweep",
+      "dataset_type": "synthetic",
+      "dataset_id": "Alacarte",
+      "varying": "N",
+      "values": [20000, 100000, 200000, 1000000, 2000000],
+      "fixed": {"d": 2, "t": 100000, "alpha_target": 10.0, "shape_sigma": 0.0},
+      "workload_template": "{data_root}/workloads/alacarte/G1_N/N-{N}/seed-{data_seed}.bin"
+    },
+    {
+      "experiment_id": "Alacarte-G2-t",
+      "sweep": "t-sweep",
+      "dataset_type": "synthetic",
+      "dataset_id": "Alacarte",
+      "varying": "t",
+      "values": [1000, 10000, 100000, 1000000, 10000000],
+      "fixed": {"N": 200000, "d": 2, "alpha_target": 10.0, "shape_sigma": 0.0},
+      "workload_template": "{data_root}/workloads/alacarte/G2_t/seed-{data_seed}.bin"
+    },
+    {
+      "experiment_id": "Alacarte-G3-alpha",
+      "sweep": "alpha-sweep",
+      "dataset_type": "synthetic",
+      "dataset_id": "Alacarte",
+      "varying": "alpha_target",
+      "values": [0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0],
+      "fixed": {"N": 200000, "d": 2, "t": 100000, "shape_sigma": 0.0},
+      "workload_template": "{data_root}/workloads/alacarte/G3_alpha/alpha-{alpha_target}/seed-{data_seed}.bin"
+    },
+    {
+      "experiment_id": "Alacarte-G4-shape",
+      "sweep": "shape-sweep",
+      "dataset_type": "synthetic",
+      "dataset_id": "Alacarte",
+      "varying": "shape_sigma",
+      "values": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+      "fixed": {"N": 200000, "d": 2, "t": 100000, "alpha_target": 10.0},
+      "workload_template": "{data_root}/workloads/alacarte/G4_shape/sigma-{shape_sigma}/seed-{data_seed}.bin"
+    },
+    {
+      "experiment_id": "Alacarte-G5-d",
+      "sweep": "d-sweep",
+      "dataset_type": "synthetic",
+      "dataset_id": "Alacarte",
+      "varying": "d",
+      "values": [2, 3, 4, 5],
+      "fixed": {"N": 200000, "t": 100000, "alpha_target": 10.0, "shape_sigma": 0.0},
+      "workload_template": "{data_root}/workloads/alacarte/G5_d/d-{d}/seed-{data_seed}.bin"
+    },
+    {
+      "experiment_id": "CMAB-R1-level",
+      "sweep": "level-sweep",
+      "dataset_type": "real",
+      "dataset_id": "CMAB-1M",
+      "varying": "level",
+      "values": [1, 2, 3, 4],
+      "fixed": {"d": 2, "t": 100000},
+      "workload_template": "{data_root}/workloads/cmab_1m/cmab-1m-level-{level}.bin"
+    },
+    {
+      "experiment_id": "CMAB-R2-t",
+      "sweep": "t-sweep",
+      "dataset_type": "real",
+      "dataset_id": "CMAB-1M",
+      "varying": "t",
+      "values": [1000, 10000, 100000, 1000000],
+      "fixed": {"d": 2, "level": 2},
+      "workload_template": "{data_root}/workloads/cmab_1m/cmab-1m-level-2.bin"
+    },
+    {
+      "experiment_id": "GeoLife-3D-R1-level",
+      "sweep": "level-sweep",
+      "dataset_type": "real",
+      "dataset_id": "GeoLife-3D-1M",
+      "varying": "level",
+      "values": [1, 2, 3],
+      "fixed": {"d": 3, "t": 100000},
+      "workload_template": "{data_root}/workloads/geolife_3d_1m/geolife-3d-1m-level-{level}.bin"
+    },
+    {
+      "experiment_id": "GeoLife-3D-R2-t",
+      "sweep": "t-sweep",
+      "dataset_type": "real",
+      "dataset_id": "GeoLife-3D-1M",
+      "varying": "t",
+      "values": [1000, 10000, 100000, 1000000],
+      "fixed": {"d": 3, "level": 2},
+      "workload_template": "{data_root}/workloads/geolife_3d_1m/geolife-3d-1m-level-2.bin"
+    },
+    {
+      "experiment_id": "GeoLife-4D-R1-level",
+      "sweep": "level-sweep",
+      "dataset_type": "real",
+      "dataset_id": "GeoLife-4D-1M",
+      "varying": "level",
+      "values": [1, 2, 3],
+      "fixed": {"d": 4, "t": 100000},
+      "workload_template": "{data_root}/workloads/geolife_4d_1m/geolife-4d-1m-level-{level}.bin"
+    },
+    {
+      "experiment_id": "GeoLife-4D-R2-t",
+      "sweep": "t-sweep",
+      "dataset_type": "real",
+      "dataset_id": "GeoLife-4D-1M",
+      "varying": "t",
+      "values": [1000, 10000, 100000, 1000000],
+      "fixed": {"d": 4, "level": 2},
+      "workload_template": "{data_root}/workloads/geolife_4d_1m/geolife-4d-1m-level-2.bin"
+    },
+    {
+      "experiment_id": "COCO-R2-t",
+      "sweep": "t-sweep",
+      "dataset_type": "real",
+      "dataset_id": "COCO-1M",
+      "varying": "t",
+      "values": [1000, 10000, 100000, 1000000],
+      "fixed": {"d": 3},
+      "workload_template": "{data_root}/workloads/coco_1m/coco-1m.bin"
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "schema_version": "anchor-hf-data-sources-lock-v2",
+  "sources": {
+    "cmab": {
+      "repo_id": "DannHiroaki/CMAB-Spatial-Join-0.08B",
+      "revision": "41e3c90fa42fc8eede910404fe3db29ad3897b81",
+      "dataset_url": "https://huggingface.co/datasets/DannHiroaki/CMAB-Spatial-Join-0.08B",
+      "license": "CC-BY-4.0",
+      "assets": [
+        {
+          "path": "file_manifest.parquet",
+          "size": 14841,
+          "sha256": "2446d2069f527ca73b8b29c0f18e74eb34e264cf1cd9a89f611b6583595aeba1",
+          "role": "published-file-manifest"
+        },
+        {
+          "path": "level_1/province=guangdong/data_00001.parquet",
+          "size": 132091547,
+          "sha256": "2ba5503fee2d6b6a656c883ae1d40bc706e4a2d4e6ce5272ff33ee92858fb5af",
+          "rows": 943285,
+          "role": "level-1-guangdong"
+        },
+        {
+          "path": "level_2/province=guangdong/data_00001.parquet",
+          "size": 132101839,
+          "sha256": "d6818eaa908d49babaa25349ef6e2994816d1212e3b841d9abf87e1626e10933",
+          "rows": 943285,
+          "role": "level-2-guangdong"
+        },
+        {
+          "path": "level_3/province=guangdong/data_00001.parquet",
+          "size": 132114979,
+          "sha256": "bacca61bbaaeaca5956051aa2a54100b0bfc95ad6e16c0deb09d698751720b81",
+          "rows": 943285,
+          "role": "level-3-guangdong"
+        },
+        {
+          "path": "level_4/province=guangdong/data_00001.parquet",
+          "size": 132134686,
+          "sha256": "49fc9c76c4337e596057f6206a0237d50e967cd776d3b7dd90a30f89384d141d",
+          "rows": 943285,
+          "role": "level-4-guangdong"
+        }
+      ]
+    },
+    "geolife": {
+      "repo_id": "DannHiroaki/Geolife-Spatial-Join-0.15B",
+      "revision": "a9b8439beb16de106f6ff3f54c73c6b6964d77af",
+      "dataset_url": "https://huggingface.co/datasets/DannHiroaki/Geolife-Spatial-Join-0.15B",
+      "license": "Microsoft Research License Agreement; non-commercial use",
+      "assets": [
+        {
+          "path": "manifest.json",
+          "size": 4305,
+          "sha256": "cd4cc91e8dd12a2ec226fc592859b1fb4a09a5ab0101bd4a4bd791bdd86cd07a",
+          "role": "published-build-manifest"
+        },
+        {
+          "path": "dims=4/level=1/part-00000.parquet",
+          "size": 157344043,
+          "sha256": "26cd35c0d4afa73470882dc532d9a16cd64956c2d9d281efe2f8906e878a2f27",
+          "rows": 6100805,
+          "role": "shared-altitude-valid-points"
+        },
+        {
+          "path": "dims=4/level=1/part-00001.parquet",
+          "size": 152849790,
+          "sha256": "d421af5195f311e291c3848fc1e04a0c8201d105d5b09186300bed3c639ff955",
+          "rows": 6100805,
+          "role": "shared-altitude-valid-points"
+        },
+        {
+          "path": "dims=4/level=1/part-00002.parquet",
+          "size": 155522963,
+          "sha256": "87b717fa951fdf4a58e822b8ef5c8340797886e94215efd4e774701496d3db53",
+          "rows": 6100805,
+          "role": "shared-altitude-valid-points"
+        },
+        {
+          "path": "dims=4/level=1/part-00003.parquet",
+          "size": 159417815,
+          "sha256": "5f39d143ca884a33ffbb1af8d7ad150c21fcb56f2f060d4569dceb5c95e4ec0d",
+          "rows": 6100805,
+          "role": "shared-altitude-valid-points"
+        },
+        {
+          "path": "dims=4/level=1/part-00004.parquet",
+          "size": 9327311,
+          "sha256": "531b090a92ecd9cb42946f95ec573d5b02625f82b620e9cab8b32326add856bd",
+          "rows": 360830,
+          "role": "shared-altitude-valid-points"
+        }
+      ]
+    },
+    "coco": {
+      "repo_id": "DannHiroaki/COCO-Spatial-Join-1.23B",
+      "revision": "2e5f2a1ba741ba1148f0b2f42209a9da4635a6cb",
+      "dataset_url": "https://huggingface.co/datasets/DannHiroaki/COCO-Spatial-Join-1.23B",
+      "license": "CC-BY-4.0",
+      "assets": [
+        {
+          "path": "data/images.parquet",
+          "size": 1809455,
+          "sha256": "42ad0c8fb4fc6e056e7faafe95115859e7af77aa39de40b67242f869cd5c4d04",
+          "rows": 123287,
+          "role": "published-image-index"
+        },
+        {
+          "path": "meta/build_manifest.json",
+          "size": 28001,
+          "sha256": "52445bf5fbb23299becba9a5c2904d104ba2cf77565a7f9d312e65e481947c1e",
+          "role": "published-build-manifest"
+        }
+      ],
+      "rectangle_access": {
+        "path_source": "meta/build_manifest.json:shards",
+        "transport": "https-byte-range",
+        "integrity": "pinned-revision-and-hub-linked-sha256",
+        "projection": ["rect_id", "z_min", "z_max", "min_x", "min_y", "max_x", "max_y", "type", "rank", "score", "coco_image_id"]
+      }
+    }
+  }
+}

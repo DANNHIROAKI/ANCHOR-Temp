@@ -1,0 +1,79 @@
+# Native and CMake build products
+/build/
+/cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+Testing/
+*.o
+*.obj
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+
+# Python caches, packaging products, and virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Downloaded sources and generated workloads
+/data/sources/
+/data/workloads/alacarte/
+/data/workloads/synthetic/
+/data/workloads/cmab_1m/
+/data/workloads/geolife_3d_1m/
+/data/workloads/geolife_4d_1m/
+/data/workloads/coco_1m/
+
+# Benchmark outputs and generated figures; retain the empty directory marker
+/results/*
+!/results/.gitkeep
+/plots/
+/figures/
+*.log
+
+# Incomplete downloads, atomic-write staging files, and editor backups
+*.partial
+*.partial-*
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+*~
+*.swp
+*.swo
+
+# Local environment files and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Editors, operating systems, and Codex-local metadata
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.codex/
+.agents/

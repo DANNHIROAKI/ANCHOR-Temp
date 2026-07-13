@@ -1,0 +1,36 @@
+{
+  "schema_version": "alacarte-config-v1",
+  "experiment_id": "synthetic-default",
+  "dataset_id": "Alacarte",
+  "workload_id": "alacarte-N200000-d2-alpha10-shape0-seed0",
+  "n_R": 100000,
+  "n_S": 100000,
+  "dimension": 2,
+  "alpha_target": 10.0,
+  "universe": {
+    "lower": [0.0, 0.0],
+    "upper": [1.0, 1.0]
+  },
+  "volume": {
+    "family": "fixed",
+    "cv": 0.0
+  },
+  "shape_sigma": 0.0,
+  "eps_geom": 0.01,
+  "epsilon_alpha": 1.0,
+  "delta": 0.01,
+  "data_seed": 0,
+  "solver": {
+    "calibration_rounds": 4,
+    "certification_checkpoints": 10,
+    "calibration_initial": 8192,
+    "certification_initial": 8192,
+    "certification_batch": 65536,
+    "train_tolerance_initial": 0.0001,
+    "theta_tolerance": 1e-10,
+    "theta_min": -700.0,
+    "theta_max": 700.0,
+    "max_expand": 256,
+    "max_bisect": 128
+  }
+}

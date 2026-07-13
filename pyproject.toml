@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "anchor-experiments"
+version = "0.1.0"
+description = "Exact box-intersection samplers and reproducible experiment pipelines"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy>=1.26",
+  "scipy>=1.11",
+]
+
+[project.optional-dependencies]
+real-data = ["pyarrow>=14", "requests>=2.31"]
+plots = ["matplotlib>=3.8", "pandas>=2.1", "seaborn>=0.13"]
+test = ["pytest>=8.0"]
+
+[project.scripts]
+anchor-inspect-workload = "anchor_exp.cli.inspect_workload:main"
+anchor-generate-synthetic = "anchor_exp.cli.generate_synthetic:main"
+anchor-prepare-synthetic-suite = "anchor_exp.cli.prepare_synthetic_suite:main"
+anchor-prepare-real = "anchor_exp.cli.prepare_real:main"
+anchor-run-suite = "anchor_exp.cli.run_suite:main"
+anchor-aggregate = "anchor_exp.cli.aggregate_results:main"
+anchor-plot = "anchor_exp.cli.plot_results:main"
+anchor-capture-machine = "anchor_exp.cli.capture_machine:main"
+anchor-validate = "anchor_exp.cli.validate_build:main"
+
+[tool.setuptools]
+package-dir = {"" = "python"}
+
+[tool.setuptools.packages.find]
+where = ["python"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
+addopts = "-ra"

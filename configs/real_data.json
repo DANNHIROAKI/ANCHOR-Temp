@@ -1,0 +1,99 @@
+{
+    "schema_version": "anchor-hf-real-data-config-v2",
+    "source_lock": "data_sources.lock.json",
+    "cmab": {
+        "source": "cmab",
+        "province": "guangdong",
+        "expected_published_building_uid_unique_count": 938387,
+        "expected_published_building_uid_duplicate_groups": 4898,
+        "expected_published_building_uid_excess_rows": 4898,
+        "expected_published_building_uid_max_multiplicity": 2,
+        "expected_buildings": 943285,
+        "target_R": 471643,
+        "target_S": 471642,
+        "levels": [
+            1,
+            2,
+            3,
+            4
+        ],
+        "stratification": {
+            "fields": [
+                "func_code",
+                "floor(cx/10000m)",
+                "floor(cy/10000m)"
+            ],
+            "tile_size_m": 10000,
+            "stratum_hash_tag": "cmab-hf-stratum-v1",
+            "object_hash_tag": "cmab-hf-building-split-v1"
+        },
+        "crs_id": "CMAB-HF-Albers-Equal-Area-m"
+    },
+    "geolife": {
+        "source": "geolife",
+        "candidate_relation": "dims=4/level=1",
+        "expected_candidates": 24764050,
+        "target_per_side": 500000,
+        "user_split": {
+            "hash_tag": "geolife-hf-user-split-v1",
+            "rule": "stable-hash order, alternating R then S"
+        },
+        "stratification": {
+            "fields": [
+                "UTC month",
+                "floor(x_cm/100000)",
+                "floor(y_cm/100000)"
+            ],
+            "tile_size_cm": 100000,
+            "quota_rule": "largest-remainder proportional allocation"
+        },
+        "point_priority": {
+            "algorithm": "anchor-keyed-splitmix64-v1",
+            "tag": "geolife-hf-point-priority-v1",
+            "key": [
+                "traj_id",
+                "point_idx"
+            ]
+        },
+        "levels": {
+            "1": {
+                "spatial_radius_cm": 1000,
+                "time_radius_ms": 30000
+            },
+            "2": {
+                "spatial_radius_cm": 2500,
+                "time_radius_ms": 150000
+            },
+            "3": {
+                "spatial_radius_cm": 10000,
+                "time_radius_ms": 600000
+            }
+        },
+        "dimensions": [
+            3,
+            4
+        ],
+        "crs_id": "EPSG:3857-centimeter-plus-epoch-millisecond"
+    },
+    "coco": {
+        "source": "coco",
+        "expected_eligible_images": 123287,
+        "selected_images": 100,
+        "proposals_per_image": 10000,
+        "proposals_per_side_per_image": 5000,
+        "image_hash_tag": "coco-image-subset",
+        "image_subset_id": "coco_hash_subset_0",
+        "proposal_hash_tag": "coco-hf-proposal-split-v1",
+        "proposal_identity": [
+            "canonical_split",
+            "coco_image_id",
+            "rank",
+            "rect_id"
+        ],
+        "proposal_split_method": "coco_hf_published_hash_v1_balanced_5000_5000",
+        "proposal_stage": "hf_published_rpn_top10000",
+        "coordinate_source_type": "float32",
+        "workload_endpoint_type": "float64",
+        "crs_id": "COCO-original-image-pixels-plus-selected-image-index"
+    }
+}
