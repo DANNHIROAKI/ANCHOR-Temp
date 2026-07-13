@@ -137,13 +137,6 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any], bytes, bytes]:
     stdout = stderr = b""
     forced_status: str | None = None
     try:
-        if args.monitor_cpu_core is not None:
-            try:
-                os.sched_setaffinity(0, {args.monitor_cpu_core})
-                report["monitor_cpu_affinity_applied"] = True
-            except (AttributeError, OSError) as exc:
-                report["monitor_cpu_affinity_error"] = str(exc)
-
         command = [
             *args.command,
             "--memory-event-fd",
@@ -159,6 +152,17 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any], bytes, bytes]:
             pass_fds=(event_write, ack_read),
             start_new_session=True,
         )
+
+        # CPU affinity is inherited across fork/exec. Pinning this monitor
+        # before Popen would also constrain the child, preventing a child-side
+        # numactl command from binding the benchmark to a different CPU.
+        if args.monitor_cpu_core is not None:
+            try:
+                os.sched_setaffinity(0, {args.monitor_cpu_core})
+                report["monitor_cpu_affinity_applied"] = True
+            except (AttributeError, OSError) as exc:
+                report["monitor_cpu_affinity_error"] = str(exc)
+
         os.close(event_write)
         event_write = -1
         os.close(ack_read)
