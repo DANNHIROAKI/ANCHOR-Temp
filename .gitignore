@@ -1,4 +1,4 @@
-# Native and CMake build products
+# Native, CMake, Ninja, coverage, and profiling products
 /build/
 /cmake-build-*/
 CMakeFiles/
@@ -7,6 +7,10 @@ cmake_install.cmake
 CTestTestfile.cmake
 compile_commands.json
 Testing/
+build.ninja
+.ninja_deps
+.ninja_log
+*.d
 *.o
 *.obj
 *.a
@@ -15,18 +19,30 @@ Testing/
 *.dylib
 *.dll
 *.exe
+*.gcda
+*.gcno
+*.profraw
+*.profdata
+/core
+/core.*
 
 # Python caches, packaging products, and virtual environments
 __pycache__/
 *.py[cod]
 *$py.class
+.eggs/
+*.egg
 *.egg-info/
+/dist/
+pip-wheel-metadata/
 .pytest_cache/
+.hypothesis/
 .mypy_cache/
 .ruff_cache/
 .pyre/
 .coverage
 .coverage.*
+coverage.xml
 htmlcov/
 .tox/
 .nox/
@@ -37,12 +53,14 @@ env/
 
 # Downloaded sources and generated workloads
 /data/sources/
-/data/workloads/alacarte/
-/data/workloads/synthetic/
-/data/workloads/cmab_1m/
-/data/workloads/geolife_3d_1m/
-/data/workloads/geolife_4d_1m/
-/data/workloads/coco_1m/
+/data/workloads/*
+!/data/workloads/validation.bin
+!/data/workloads/validation.bin.manifest.json
+
+# Generated manifests and orchestration locks; retain directory markers
+/data/manifests/*
+!/data/manifests/.gitkeep
+/data/.*.lock
 
 # Benchmark outputs and generated figures; retain the empty directory marker
 /results/*
