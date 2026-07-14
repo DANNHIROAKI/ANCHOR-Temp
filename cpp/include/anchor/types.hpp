@@ -267,13 +267,12 @@ struct AlgorithmCounters {
   // SweepRT
   std::size_t nonzero_event_blocks{};
   std::size_t selected_event_blocks{};
-  std::size_t skeleton_nodes{};
-  std::size_t fenwick_items{};
+  std::size_t range_tree_nodes{};
+  std::size_t range_tree_point_references{};
   // LiftedRT
   std::size_t positive_degree_left_objects{};
   std::size_t selected_left_objects{};
   std::size_t canonical_block_queries{};
-  std::size_t range_tree_items{};
 };
 
 struct Diagnostics {

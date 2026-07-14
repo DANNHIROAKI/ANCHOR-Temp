@@ -246,10 +246,10 @@ are synthesized from a single run.
   Certification uses an independent Philox domain, a rigorous sample-variance
   upper bound, and an upward-rounded empirical-Bernstein radius before the
   final, disjoint R/S generation streams are opened.
-- `LiftedRT` and high-dimensional `SweepRT` intentionally retain the standard
-  range-tree space costs stated in the paper. They may hit the fixed resource
-  limit at million scale. Such failures are experimental outcomes—there is no
-  hidden fallback to a scan or approximate index.
+- `LiftedRT` and high-dimensional `SweepRT` intentionally retain the direct
+  node-based range-tree space costs stated in the paper. They may hit the fixed
+  resource limit at million scale. Such failures are experimental outcomes—
+  there is no hidden fallback to a scan or approximate index.
 - Machine, workload, solver, algorithm, source, and build identities are all
   checksum-addressed. See
   [`docs/IMPLEMENTATION_DECISIONS.md`](docs/IMPLEMENTATION_DECISIONS.md).
@@ -257,7 +257,8 @@ are synthesized from a single run.
 ## Validation
 
 The test suite covers exact bounded integers and alias mass conservation,
-Fenwick select, strict range boundaries, SweepRT event ownership, ANCHOR local
+Fenwick select, static/dynamic node-range-tree count and active-rank sampling,
+strict range boundaries, SweepRT event ownership, ANCHOR local
 ownership and terminal-array lifetime, endpoint-touching boxes, duplicate
 geometry identities, empty/full/singleton joins, exhaustive small cross-checks,
 and deterministic Alacarte/preprocessing behavior.

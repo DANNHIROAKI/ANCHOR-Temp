@@ -9,10 +9,15 @@ choices so results from this repository are interpretable and reproducible.
    orchestration, validation, aggregation, and plotting are Python. Measured
    algorithm code is single-threaded.
 2. **No baseline substitution.** `LiftedRT` and `SweepRT` use standard
-   multi-level range trees with canonical terminal blocks. A high-dimensional
+   node-based multi-level range trees. Every node stores its subtree's active
+   count, every node at a nonterminal coordinate owns a recursively built
+   associated tree, and range queries return disjoint canonical node subtrees.
+   Static `LiftedRT` initializes all counts at construction; dynamic `SweepRT`
+   updates counts along the primary and associated search paths. The baselines
+   do not use terminal associated arrays or Fenwick sampling. A high-dimensional
    structure that exceeds the configured memory or time limit is reported as
-   `OOM` or `TO`; it is never replaced by a scan, kd-tree, approximate index, or
-   lower-dimensional special case.
+   `OOM` or `TO`; it is never replaced by a scan, kd-tree, approximate index,
+   or lower-dimensional special case.
 3. **Coordinates.** Frozen workloads contain IEEE-754 binary64 or signed int64
    endpoints. Non-finite floating values and empty boxes are rejected. Integer
    lifting uses ascending `U` coordinates plus strict suffix queries, avoiding

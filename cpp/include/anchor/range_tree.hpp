@@ -1,6 +1,7 @@
 #pragma once
 
 #include "anchor/fenwick.hpp"
+#include "anchor/range_query.hpp"
 #include "anchor/random.hpp"
 #include "anchor/types.hpp"
 
@@ -10,34 +11,12 @@
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <optional>
 #include <span>
 #include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace anchor {
-
-template <Coordinate Coord>
-struct AxisRange {
-  std::optional<Coord> lower;
-  std::optional<Coord> upper;
-  bool lower_strict{true};
-  bool upper_strict{true};
-
-  static AxisRange less_than(Coord value) {
-    AxisRange q;
-    q.upper = value;
-    q.upper_strict = true;
-    return q;
-  }
-  static AxisRange greater_than(Coord value) {
-    AxisRange q;
-    q.lower = value;
-    q.lower_strict = true;
-    return q;
-  }
-};
 
 // A conventional layered range tree. At dimensions 0..D-2 it stores a
 // balanced segment/search tree and an associated next-dimensional structure

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "anchor/anchor_core.hpp"
+#include "anchor/node_range_tree.hpp"
 #include "anchor/random.hpp"
-#include "anchor/range_tree.hpp"
 #include "anchor/types.hpp"
 
 #include <algorithm>
@@ -558,12 +558,12 @@ class SweepRangeTree final : public ISampler<Coord> {
     diagnostics_.counters.nonzero_event_blocks = static_cast<std::size_t>(
         std::count_if(weights_.begin(), weights_.end(),
                       [](UInt128 weight) { return weight != 0; }));
-    diagnostics_.counters.skeleton_nodes =
+    diagnostics_.counters.range_tree_nodes =
         (tree_r_ ? tree_r_->skeleton_nodes() : 0) +
         (tree_s_ ? tree_s_->skeleton_nodes() : 0);
-    diagnostics_.counters.fenwick_items =
-        (tree_r_ ? tree_r_->terminal_items() : 0) +
-        (tree_s_ ? tree_s_->terminal_items() : 0);
+    diagnostics_.counters.range_tree_point_references =
+        (tree_r_ ? tree_r_->point_references() : 0) +
+        (tree_s_ ? tree_s_->point_references() : 0);
   }
   SweepRangeTree(const SweepRangeTree&) = delete;
   SweepRangeTree& operator=(const SweepRangeTree&) = delete;
@@ -679,7 +679,7 @@ class SweepRangeTree final : public ISampler<Coord> {
     }
   }
 
-  std::unique_ptr<OrthogonalRangeTree<Coord>> build_tree(Side side) {
+  std::unique_ptr<NodeRangeTree<Coord>> build_tree(Side side) {
     const std::size_t h = geometry_.dimensions() - 1;
     const std::size_t dimensions = 2 * h;
     auto coordinate = [this, side, h](detail::Index point, std::size_t axis) {
@@ -689,7 +689,7 @@ class SweepRangeTree final : public ISampler<Coord> {
     auto id = [this, side](detail::Index point) {
       return geometry_.id(side, point);
     };
-    return std::make_unique<OrthogonalRangeTree<Coord>>(
+    return std::make_unique<NodeRangeTree<Coord>>(
         dimensions, geometry_.valid(side), std::move(coordinate), std::move(id),
         true, geometry_.universe(side));
   }
@@ -707,12 +707,12 @@ class SweepRangeTree final : public ISampler<Coord> {
     return query;
   }
 
-  OrthogonalRangeTree<Coord>& tree(Side side) {
+  NodeRangeTree<Coord>& tree(Side side) {
     auto& pointer = side == Side::R ? tree_r_ : tree_s_;
     if (!pointer) throw std::logic_error("missing active range tree");
     return *pointer;
   }
-  const OrthogonalRangeTree<Coord>& tree(Side side) const {
+  const NodeRangeTree<Coord>& tree(Side side) const {
     const auto& pointer = side == Side::R ? tree_r_ : tree_s_;
     if (!pointer) throw std::logic_error("missing active range tree");
     return *pointer;
@@ -774,8 +774,8 @@ class SweepRangeTree final : public ISampler<Coord> {
   std::size_t start_count_{};
   std::vector<UInt128> weights_;
   std::unique_ptr<IntegerAlias> event_alias_;
-  std::unique_ptr<OrthogonalRangeTree<Coord>> tree_r_;
-  std::unique_ptr<OrthogonalRangeTree<Coord>> tree_s_;
+  std::unique_ptr<NodeRangeTree<Coord>> tree_r_;
+  std::unique_ptr<NodeRangeTree<Coord>> tree_s_;
   detail::DenseActiveSet dense_r_;
   detail::DenseActiveSet dense_s_;
   UInt128 total_{};
@@ -834,7 +834,7 @@ class LiftedRangeTree final : public ISampler<Coord> {
         auto id = [this](detail::Index point) {
           return geometry_.id(Side::S, point);
         };
-        tree_ = std::make_unique<OrthogonalRangeTree<Coord>>(
+        tree_ = std::make_unique<NodeRangeTree<Coord>>(
             dimensions, geometry_.valid(Side::S), std::move(coordinate),
             std::move(id), false, geometry_.universe(Side::S));
       }
@@ -863,7 +863,9 @@ class LiftedRangeTree final : public ISampler<Coord> {
         degrees_.capacity() * sizeof(UInt128);
     diagnostics_.counters.positive_degree_left_objects = anchors_.size();
     diagnostics_.counters.canonical_block_queries = preprocess_query_count_;
-    diagnostics_.counters.range_tree_items = tree_ ? tree_->terminal_items() : 0;
+    diagnostics_.counters.range_tree_nodes = tree_ ? tree_->skeleton_nodes() : 0;
+    diagnostics_.counters.range_tree_point_references =
+        tree_ ? tree_->point_references() : 0;
   }
   LiftedRangeTree(const LiftedRangeTree&) = delete;
   LiftedRangeTree& operator=(const LiftedRangeTree&) = delete;
@@ -939,7 +941,7 @@ class LiftedRangeTree final : public ISampler<Coord> {
 
   detail::Geometry<Coord> geometry_;
   SamplerOptions options_;
-  std::unique_ptr<OrthogonalRangeTree<Coord>> tree_;
+  std::unique_ptr<NodeRangeTree<Coord>> tree_;
   std::vector<detail::Index> anchors_;
   std::vector<UInt128> degrees_;
   std::unique_ptr<IntegerAlias> outer_alias_;

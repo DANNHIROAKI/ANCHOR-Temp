@@ -830,15 +830,18 @@ void add_algorithm_counters(JsonObject& json, const Diagnostics& diagnostics,
     case AlgorithmKind::SweepRT:
       json.number("nonzero_event_blocks", c.nonzero_event_blocks);
       json.number("selected_event_blocks", c.selected_event_blocks);
-      json.number("skeleton_nodes", c.skeleton_nodes);
-      json.number("fenwick_items", c.fenwick_items);
+      json.number("range_tree_nodes", c.range_tree_nodes);
+      json.number("range_tree_point_references",
+                  c.range_tree_point_references);
       break;
     case AlgorithmKind::LiftedRT:
       json.number("positive_degree_left_objects",
                   c.positive_degree_left_objects);
       json.number("selected_left_objects", c.selected_left_objects);
       json.number("canonical_block_queries", c.canonical_block_queries);
-      json.number("range_tree_items", c.range_tree_items);
+      json.number("range_tree_nodes", c.range_tree_nodes);
+      json.number("range_tree_point_references",
+                  c.range_tree_point_references);
       break;
   }
 }

@@ -1,11 +1,12 @@
 #include "anchor/algorithms.hpp"
 #include "anchor/fenwick.hpp"
+#include "anchor/node_range_tree.hpp"
 #include "anchor/random.hpp"
-#include "anchor/range_tree.hpp"
 #include "anchor/types.hpp"
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -106,7 +107,7 @@ void test_boxset_validation() {
 }
 
 void test_range_tree() {
-  using Tree = anchor::OrthogonalRangeTree<std::int64_t>;
+  using Tree = anchor::NodeRangeTree<std::int64_t>;
   using Index = Tree::Index;
   const std::vector<std::array<std::int64_t, 3>> points{
       {0, 0, 0}, {1, 4, 2}, {2, 2, 4}, {3, 3, 1}, {4, 1, 3}};
@@ -144,7 +145,7 @@ void test_range_tree() {
 }
 
 void test_range_tree_random_strict_boundaries() {
-  using Tree = anchor::OrthogonalRangeTree<std::int64_t>;
+  using Tree = anchor::NodeRangeTree<std::int64_t>;
   using Index = Tree::Index;
   constexpr std::size_t d = 4;
   std::vector<std::array<std::int64_t, d>> points;
@@ -212,6 +213,202 @@ void test_range_tree_random_strict_boundaries() {
   }
 }
 
+void test_range_tree_double_boundaries_and_duplicates() {
+  using Tree = anchor::NodeRangeTree<double>;
+  using Index = Tree::Index;
+  const double adjacent = std::nextafter(0.0, 1.0);
+  const std::vector<std::array<double, 2>> points{
+      {0.0, 1.0}, {0.0, 1.0}, {adjacent, 1.0},
+      {1.0, 2.0}, {-0.0, 1.0}};
+  const std::array<std::uint64_t, 5> stable_ids{50, 10, 20, 30, 40};
+  std::vector<Index> indices{0, 1, 2, 3, 4};
+  auto coordinate = [&](Index point, std::size_t dimension) {
+    return points[point][dimension];
+  };
+  auto id = [&](Index point) { return stable_ids[point]; };
+  Tree tree(2, indices, coordinate, id, false, points.size());
+
+  std::vector<anchor::AxisRange<double>> query(2);
+  query[0].lower = 0.0;
+  query[0].upper = 0.0;
+  query[0].lower_strict = false;
+  query[0].upper_strict = false;
+  query[1].lower = 1.0;
+  query[1].upper = 1.0;
+  query[1].lower_strict = false;
+  query[1].upper_strict = false;
+  CHECK(tree.count(query) == 3);  // both duplicates and negative zero
+
+  const std::array<std::uint64_t, 4> seed{4, 3, 2, 1};
+  anchor::RngPool first_pool(seed);
+  anchor::RngPool second_pool(seed);
+  auto first_block = first_pool.stream("double-block");
+  auto first_rank = first_pool.stream("double-rank");
+  auto second_block = second_pool.stream("double-block");
+  auto second_rank = second_pool.stream("double-rank");
+  std::array<Index, 64> first_sample{};
+  std::array<Index, 64> second_sample{};
+  CHECK(tree.sample(query, first_sample, first_block, first_rank));
+  CHECK(tree.sample(query, second_sample, second_block, second_rank));
+  CHECK(first_sample == second_sample);
+  std::set<Index> seen;
+  for (Index point : first_sample) {
+    CHECK(point == 0 || point == 1 || point == 4);
+    seen.insert(point);
+  }
+  CHECK(seen.size() == 3);
+
+  query.assign(2, {});
+  query[0].lower = 0.0;
+  query[0].upper = 1.0;
+  query[0].lower_strict = true;
+  query[0].upper_strict = true;
+  CHECK(tree.count(query) == 1);  // nextafter(0, 1), not either endpoint
+
+  query.assign(2, {});
+  query[0].lower = 1.0;
+  query[0].upper = 1.0;
+  query[0].lower_strict = false;
+  query[0].upper_strict = false;
+  CHECK(tree.count(query) == 1);
+
+  query[0].lower = 2.0;
+  query[0].upper = 1.0;
+  CHECK(tree.count(query) == 0);
+  query[0].lower = std::numeric_limits<double>::infinity();
+  check_throws<std::invalid_argument>([&] { (void)tree.count(query); });
+  std::vector<anchor::AxisRange<double>> wrong_dimension(1);
+  check_throws<std::invalid_argument>(
+      [&] { (void)tree.count(wrong_dimension); });
+  check_throws<std::logic_error>([&] { tree.set_active(0, false); });
+}
+
+void test_dynamic_range_tree_interleaved_updates() {
+  using Tree = anchor::NodeRangeTree<std::int64_t>;
+  using Index = Tree::Index;
+  constexpr std::size_t dimensions = 3;
+  std::vector<std::array<std::int64_t, dimensions>> points;
+  for (std::int64_t i = 0; i < 12; ++i) {
+    points.push_back(
+        {i % 4 - 2, (i * 3) % 5 - 2, (i * i) % 6 - 3});
+  }
+  std::vector<Index> indices(points.size());
+  for (std::size_t i = 0; i < indices.size(); ++i) {
+    indices[i] = static_cast<Index>(i);
+  }
+  auto coordinate = [&](Index point, std::size_t dimension) {
+    return points[point][dimension];
+  };
+  auto id = [](Index point) {
+    return static_cast<std::uint64_t>(100 - point);
+  };
+  Tree tree(dimensions, indices, coordinate, id, true, points.size());
+  std::vector<bool> active(points.size(), false);
+  CHECK(tree.all_inactive());
+  CHECK(!tree.is_active(99));
+
+  tree.set_active(0, true);
+  active[0] = true;
+  check_throws<std::logic_error>([&] { tree.set_active(0, true); });
+  tree.set_active(0, false);
+  active[0] = false;
+  check_throws<std::logic_error>([&] { tree.set_active(0, false); });
+  check_throws<std::out_of_range>([&] { tree.set_active(99, true); });
+
+  const std::array<std::uint64_t, 4> seed{11, 22, 33, 44};
+  anchor::RngPool pool(seed);
+  auto operation_rng = pool.stream("dynamic-operations");
+  auto block_rng = pool.stream("dynamic-blocks");
+  auto rank_rng = pool.stream("dynamic-ranks");
+
+  for (int iteration = 0; iteration < 400; ++iteration) {
+    if (anchor::uniform_below(operation_rng, 4) == 0) {
+      const std::size_t selected = static_cast<std::size_t>(
+          anchor::uniform_below(operation_rng, points.size()));
+      const bool new_state = !active[selected];
+      tree.set_active(static_cast<Index>(selected), new_state);
+      active[selected] = new_state;
+    }
+
+    std::vector<anchor::AxisRange<std::int64_t>> query(dimensions);
+    for (std::size_t axis = 0; axis < dimensions; ++axis) {
+      const auto mode =
+          static_cast<unsigned>(anchor::uniform_below(operation_rng, 6));
+      const std::int64_t first =
+          static_cast<std::int64_t>(anchor::uniform_below(operation_rng, 7)) - 3;
+      if (mode == 1) {
+        query[axis] =
+            anchor::AxisRange<std::int64_t>::greater_than(first);
+      } else if (mode == 2) {
+        query[axis] = anchor::AxisRange<std::int64_t>::less_than(first);
+      } else if (mode == 3) {
+        query[axis].lower = first;
+        query[axis].lower_strict = false;
+      } else if (mode == 4) {
+        query[axis].upper = first;
+        query[axis].upper_strict = false;
+      } else if (mode == 5) {
+        const std::int64_t second = static_cast<std::int64_t>(
+                                        anchor::uniform_below(operation_rng, 7)) -
+                                    3;
+        query[axis].lower = std::min(first, second);
+        query[axis].upper = std::max(first, second);
+        query[axis].lower_strict =
+            anchor::uniform_below(operation_rng, 2) != 0;
+        query[axis].upper_strict =
+            anchor::uniform_below(operation_rng, 2) != 0;
+      }
+    }
+
+    const auto matches = [&](Index point) {
+      for (std::size_t axis = 0; axis < dimensions; ++axis) {
+        const std::int64_t value = points[point][axis];
+        const auto& range = query[axis];
+        if (range.lower &&
+            (range.lower_strict ? !(*range.lower < value)
+                                : value < *range.lower)) {
+          return false;
+        }
+        if (range.upper &&
+            (range.upper_strict ? !(value < *range.upper)
+                                : *range.upper < value)) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    std::size_t expected = 0;
+    for (std::size_t point = 0; point < points.size(); ++point) {
+      if (active[point] && matches(static_cast<Index>(point))) ++expected;
+    }
+    CHECK(tree.count(query) == expected);
+
+    std::array<Index, 19> sample{};
+    const bool sampled = tree.sample(query, sample, block_rng, rank_rng);
+    CHECK(sampled == (expected != 0));
+    if (sampled) {
+      for (Index point : sample) {
+        CHECK(point < active.size());
+        if (point < active.size()) {
+          CHECK(active[point]);
+          CHECK(matches(point));
+        }
+      }
+    }
+  }
+
+  for (std::size_t point = 0; point < active.size(); ++point) {
+    if (active[point]) {
+      tree.set_active(static_cast<Index>(point), false);
+      active[point] = false;
+    }
+  }
+  CHECK(tree.all_inactive());
+  const std::vector<anchor::AxisRange<std::int64_t>> unbounded(dimensions);
+  CHECK(tree.count(unbounded) == 0);
+}
+
 template <anchor::Coordinate Coord>
 std::set<anchor::JoinPair> brute_join(
     const anchor::BoxJoinInstance<Coord>& input) {
@@ -265,11 +462,16 @@ void verify_all_algorithms(
         case anchor::AlgorithmKind::LiftedRT:
           CHECK(counters.positive_degree_left_objects != 0);
           CHECK(counters.selected_left_objects != 0);
-          CHECK(counters.range_tree_items != 0);
+          CHECK(counters.range_tree_nodes != 0);
+          CHECK(counters.range_tree_point_references != 0);
           break;
         case anchor::AlgorithmKind::SweepRT:
           CHECK(counters.nonzero_event_blocks != 0);
           CHECK(counters.selected_event_blocks != 0);
+          if (input->dimensions() > 1) {
+            CHECK(counters.range_tree_nodes != 0);
+            CHECK(counters.range_tree_point_references != 0);
+          }
           break;
       }
     }
@@ -450,6 +652,8 @@ int main() {
     test_boxset_validation();
     test_range_tree();
     test_range_tree_random_strict_boundaries();
+    test_range_tree_double_boundaries_and_duplicates();
+    test_dynamic_range_tree_interleaved_updates();
     test_duplicate_identity_and_touching();
     test_filtering_and_double_coordinates();
     test_empty_after_filtering();
