@@ -5,7 +5,6 @@ set -Eeuo pipefail
 IFS=$'\n\t'
 umask 022
 
-readonly TIMEOUT_SECONDS=900
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$repo_root"
 
@@ -81,6 +80,14 @@ results_root="$(resolve_path "$results_root")"
 [[ -f "$experiments" ]] || fatal "experiment config not found: $experiments"
 
 export PYTHONPATH="$repo_root/python${PYTHONPATH:+:$PYTHONPATH}"
+protocol_limits="$("$python_bin" - <<'PY'
+from anchor_exp.protocol import OFFICIAL_MEMORY_CAP_BYTES, OFFICIAL_TIMEOUT_SECONDS
+print(f"{OFFICIAL_TIMEOUT_SECONDS}:{OFFICIAL_MEMORY_CAP_BYTES}")
+PY
+)"
+readonly TIMEOUT_SECONDS="${protocol_limits%%:*}"
+readonly MEMORY_CAP_BYTES="${protocol_limits#*:}"
+
 "$python_bin" - <<'PY'
 import importlib
 import importlib.util
@@ -190,22 +197,28 @@ if len(cases) != 55:
 print(f"verified_cases={len(cases)}")
 PY
 
-log "Creating the effective 900-second procfs machine manifest"
-"$python_bin" - "$machine" "$effective_machine" "$TIMEOUT_SECONDS" <<'PY'
+log "Creating the effective 1800-second, 950-GiB procfs machine manifest"
+"$python_bin" - "$machine" "$effective_machine" "$TIMEOUT_SECONDS" "$MEMORY_CAP_BYTES" <<'PY'
 import json, pathlib, sys
 from anchor_exp.experiments import validate_machine
 from anchor_exp.stable_hash import canonical_json_bytes, stable_hash
 source, destination = map(pathlib.Path, sys.argv[1:3])
 timeout = int(sys.argv[3])
+memory_cap = int(sys.argv[4])
 machine = json.loads(source.read_text(encoding="utf-8"))
 machine["timeout_seconds"] = timeout
 machine["setup_timeout_seconds"] = timeout
+machine["memory_cap_bytes"] = memory_cap
 identity = {key: value for key, value in machine.items() if key not in {"machine_id", "protocol_violations"}}
 machine["machine_id"] = stable_hash("machine-manifest-v1", identity)[:16].hex()
 destination.parent.mkdir(parents=True, exist_ok=True)
 destination.write_bytes(canonical_json_bytes(machine) + b"\n")
 validate_machine(machine)
-print(f"machine_id={machine['machine_id']} memory_backend={machine['memory_measurement_backend']} poll_ms={machine['memory_poll_interval_ms']}")
+print(
+    f"machine_id={machine['machine_id']} memory_cap_bytes={memory_cap} "
+    f"memory_backend={machine['memory_measurement_backend']} "
+    f"poll_ms={machine['memory_poll_interval_ms']}"
+)
 PY
 
 log "Running all datasets serially in Setup order (AC, AS, SweepRT, LiftedRT)"
@@ -241,16 +254,20 @@ if [[ "$generate_plots" == true ]]; then
 fi
 
 log "Writing run manifest"
-"$python_bin" - "$experiments" "$effective_machine" "$raw_jsonl" "$raw_csv" "$aggregate_json" "$metrics_csv" "$run_manifest" "$tasks" <<'PY'
+"$python_bin" - "$experiments" "$effective_machine" "$raw_jsonl" "$raw_csv" "$aggregate_json" "$metrics_csv" "$run_manifest" "$tasks" "$TIMEOUT_SECONDS" "$MEMORY_CAP_BYTES" <<'PY'
 import datetime as dt, json, pathlib, sys
 from anchor_exp.stable_hash import hash_file
 experiments, machine, raw, raw_csv, aggregate, metrics, output = map(pathlib.Path, sys.argv[1:8])
+timeout = int(sys.argv[9])
+memory_cap = int(sys.argv[10])
 value = {
     "schema_version": "anchor-lite-run-manifest-v2",
     "completed_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
     "data_seed": 0,
     "process_repeat_id": 0,
-    "timeout_seconds": 900,
+    "memory_cap_bytes": memory_cap,
+    "timeout_seconds": timeout,
+    "setup_timeout_seconds": timeout,
     "tasks": [item.strip() for item in sys.argv[8].split(",") if item.strip()],
     "artifacts": {
         name: {"path": str(path.resolve()), "sha256": hash_file(path)}

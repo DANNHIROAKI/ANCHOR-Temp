@@ -117,6 +117,10 @@ def _advance_deadline(previous: float, interval: float, now: float) -> float:
     return candidate
 
 
+def _exceeds_memory_cap(rss_bytes: int, memory_cap_bytes: int) -> bool:
+    return rss_bytes > memory_cap_bytes
+
+
 def run(args: argparse.Namespace) -> tuple[int, dict[str, Any], bytes, bytes]:
     event_read, event_write = os.pipe()
     ack_read, ack_write = os.pipe()
@@ -183,7 +187,7 @@ def run(args: argparse.Namespace) -> tuple[int, dict[str, Any], bytes, bytes]:
                 samples.append(value)
                 sample_times_ns.append(now_ns)
                 report["rss_sample_count"] = len(samples)
-                if value > args.memory_cap_bytes:
+                if _exceeds_memory_cap(value, args.memory_cap_bytes):
                     report["memory_cap_exceeded"] = True
                     report["termination_signal"] = _terminate_group(process)
                     forced_status = "MEMORY-CAP-EXCEEDED"

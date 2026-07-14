@@ -11,6 +11,7 @@ import subprocess
 from collections.abc import Mapping, Sequence
 from typing import Any
 
+from .protocol import OFFICIAL_TIMEOUT_SECONDS
 from .stable_hash import hash_file, stable_hash
 
 
@@ -140,8 +141,8 @@ def capture_environment(
         "memory_monitor_runner": str(
             pathlib.Path(__file__).resolve().parents[2] / "scripts" / "run_procfs.py"
         ),
-        "timeout_seconds": 900,
-        "setup_timeout_seconds": 900,
+        "timeout_seconds": OFFICIAL_TIMEOUT_SECONDS,
+        "setup_timeout_seconds": OFFICIAL_TIMEOUT_SECONDS,
         "cpu_core": int(cpu_core),
         "monitor_cpu_core": resolved_monitor_cpu_core,
         "numa_node": int(numa_node),

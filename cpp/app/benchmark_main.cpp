@@ -62,6 +62,8 @@ class MemoryMeasurementError : public std::runtime_error {
 enum class MeasurementMode { Time, Memory };
 enum class Task { OneShot, CountOnly, PreparedQuery };
 
+constexpr std::uint64_t kDefaultSetupTimeoutSeconds = 30U * 60U;
+
 struct Options {
   std::filesystem::path workload;
   AlgorithmKind algorithm{};
@@ -72,7 +74,7 @@ struct Options {
   MeasurementMode measurement_mode{};
   Task task{};
   std::uint64_t timeout_seconds{};
-  std::uint64_t setup_timeout_seconds{900};
+  std::uint64_t setup_timeout_seconds{kDefaultSetupTimeoutSeconds};
   std::optional<int> memory_event_fd;
   std::optional<int> memory_ack_fd;
   std::optional<std::filesystem::path> dump_output;

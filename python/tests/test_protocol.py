@@ -13,6 +13,11 @@ from anchor_exp.aggregate import (
     resource_boundaries,
 )
 from anchor_exp.environment import capture_environment
+from anchor_exp.protocol import (
+    OFFICIAL_MEMORY_CAP_BYTES,
+    OFFICIAL_MEMORY_CAP_GIB,
+    OFFICIAL_TIMEOUT_SECONDS,
+)
 from anchor_exp.experiments import (
     ExperimentCase,
     _finalize_reconciled_jsonl,
@@ -29,6 +34,13 @@ from anchor_exp.stable_hash import (
 
 
 ALGORITHMS = ("AC", "AS", "SweepRT", "LiftedRT")
+
+
+def test_official_resource_limits_are_frozen():
+    assert OFFICIAL_TIMEOUT_SECONDS == 1800
+    assert OFFICIAL_MEMORY_CAP_GIB == 950
+    assert OFFICIAL_MEMORY_CAP_BYTES == 950 * 1024 ** 3
+    assert OFFICIAL_MEMORY_CAP_BYTES > 900_000_000_000
 
 
 def test_default_run_order_is_fixed_ac_as_sweeprt_liftedrt():
@@ -337,6 +349,8 @@ def test_machine_capture_requires_matching_ok_validation_report(tmp_path):
     assert manifest["validation_report_status"] == "OK"
     assert manifest["validation_report_sha256"] == hash_file(report)
     assert manifest["host"]["memory_total_bytes"] is not None
+    assert manifest["timeout_seconds"] == OFFICIAL_TIMEOUT_SECONDS
+    assert manifest["setup_timeout_seconds"] == OFFICIAL_TIMEOUT_SECONDS
 
     report.write_text(
         json.dumps(

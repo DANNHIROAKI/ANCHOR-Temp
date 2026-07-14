@@ -1,0 +1,12 @@
+"""Frozen resource limits shared by the publication workflow."""
+
+OFFICIAL_TIMEOUT_SECONDS = 30 * 60
+OFFICIAL_MEMORY_CAP_GIB = 950
+OFFICIAL_MEMORY_CAP_BYTES = OFFICIAL_MEMORY_CAP_GIB * 1024 ** 3
+
+
+__all__ = (
+    "OFFICIAL_MEMORY_CAP_BYTES",
+    "OFFICIAL_MEMORY_CAP_GIB",
+    "OFFICIAL_TIMEOUT_SECONDS",
+)

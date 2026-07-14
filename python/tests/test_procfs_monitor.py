@@ -10,6 +10,8 @@ import sys
 
 import pytest
 
+from anchor_exp.protocol import OFFICIAL_MEMORY_CAP_BYTES
+
 
 REPOSITORY = pathlib.Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location(
@@ -24,6 +26,15 @@ def test_procfs_reads_current_vmrss_and_absolute_deadlines() -> None:
     assert run_procfs.read_vmrss_bytes(os.getpid()) > 0
     assert run_procfs._advance_deadline(1.0, 0.005, 1.004) == 1.005
     assert math.isclose(run_procfs._advance_deadline(1.0, 0.005, 1.017), 1.02)
+    assert not run_procfs._exceeds_memory_cap(
+        OFFICIAL_MEMORY_CAP_BYTES - 1, OFFICIAL_MEMORY_CAP_BYTES
+    )
+    assert not run_procfs._exceeds_memory_cap(
+        OFFICIAL_MEMORY_CAP_BYTES, OFFICIAL_MEMORY_CAP_BYTES
+    )
+    assert run_procfs._exceeds_memory_cap(
+        OFFICIAL_MEMORY_CAP_BYTES + 1, OFFICIAL_MEMORY_CAP_BYTES
+    )
 
 
 def test_procfs_monitor_event_protocol_and_peak_formulas() -> None:

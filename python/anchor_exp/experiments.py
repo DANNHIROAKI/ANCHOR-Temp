@@ -13,6 +13,11 @@ import time
 from collections.abc import Iterable, Mapping, Sequence
 from typing import Any
 
+from anchor_exp.protocol import (
+    OFFICIAL_MEMORY_CAP_BYTES,
+    OFFICIAL_MEMORY_CAP_GIB,
+    OFFICIAL_TIMEOUT_SECONDS,
+)
 from anchor_exp.stable_hash import (
     canonical_json_bytes,
     hash_file,
@@ -536,13 +541,16 @@ def load_config(path: str | pathlib.Path) -> dict[str, Any]:
 def validate_machine(machine: Mapping[str, Any]) -> None:
     if machine.get("schema_version") != "anchor-machine-v1":
         raise ValueError("unsupported machine manifest schema")
-    if int(machine.get("memory_cap_bytes", 0)) <= 0:
-        raise ValueError("machine manifest needs a positive memory_cap_bytes")
+    if int(machine.get("memory_cap_bytes", 0)) != OFFICIAL_MEMORY_CAP_BYTES:
+        raise ValueError(
+            "publication machine manifest requires "
+            f"the {OFFICIAL_MEMORY_CAP_GIB}-GiB RSS cap"
+        )
     if (
-        int(machine.get("timeout_seconds", 0)) != 900
-        or int(machine.get("setup_timeout_seconds", 0)) != 900
+        int(machine.get("timeout_seconds", 0)) != OFFICIAL_TIMEOUT_SECONDS
+        or int(machine.get("setup_timeout_seconds", 0)) != OFFICIAL_TIMEOUT_SECONDS
     ):
-        raise ValueError("publication machine manifest requires 900-second timeouts")
+        raise ValueError("publication machine manifest requires 1800-second timeouts")
     if machine.get("memory_measurement_backend") != "procfs_vmrss_polling":
         raise ValueError("machine manifest requires procfs_vmrss_polling")
     if int(machine.get("memory_poll_interval_ms", 0)) != 5:
@@ -799,9 +807,9 @@ def _benchmark_command(run: RunSpec, machine: Mapping[str, Any]) -> list[str]:
         "--task",
         run.task,
         "--timeout-seconds",
-        str(int(machine.get("timeout_seconds", 900))),
+        str(int(machine.get("timeout_seconds", OFFICIAL_TIMEOUT_SECONDS))),
         "--setup-timeout-seconds",
-        str(int(machine.get("setup_timeout_seconds", 900))),
+        str(int(machine.get("setup_timeout_seconds", OFFICIAL_TIMEOUT_SECONDS))),
     ]
     numactl = machine.get("numactl_path")
     if numactl:
@@ -892,8 +900,12 @@ def _identity(
         "level": run.case.level,
         "algorithm": run.algorithm,
         "orientation": "R-to-S",
-        "timeout_seconds": int(machine.get("timeout_seconds", 900)),
-        "setup_timeout_seconds": int(machine.get("setup_timeout_seconds", 900)),
+        "timeout_seconds": int(
+            machine.get("timeout_seconds", OFFICIAL_TIMEOUT_SECONDS)
+        ),
+        "setup_timeout_seconds": int(
+            machine.get("setup_timeout_seconds", OFFICIAL_TIMEOUT_SECONDS)
+        ),
         **{
             key: value for key, value in run.case.parameters.items() if key not in {"t"}
         },
@@ -1037,8 +1049,11 @@ def run_one(run: RunSpec, machine: Mapping[str, Any]) -> dict[str, Any]:
     manifest = read_manifest(run.case.workload_path)
     record = _identity(run, machine, manifest)
     command = _benchmark_command(run, machine)
-    setup_timeout = int(machine.get("setup_timeout_seconds", 900))
-    timeout = int(machine.get("timeout_seconds", 900)) + 2 * setup_timeout
+    setup_timeout = int(machine.get("setup_timeout_seconds", OFFICIAL_TIMEOUT_SECONDS))
+    timeout = (
+        int(machine.get("timeout_seconds", OFFICIAL_TIMEOUT_SECONDS))
+        + 2 * setup_timeout
+    )
     wrapper_timeout = timeout + 30
     wrapper_report: dict[str, Any] = {}
     try:

@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 
+from anchor_exp.protocol import OFFICIAL_TIMEOUT_SECONDS
 from anchor_exp.stable_hash import canonical_json_bytes, hash_file, stable_hash
 from anchor_exp.validation import (
     PAIR_DTYPE,
@@ -118,7 +119,9 @@ def _parser() -> argparse.ArgumentParser:
         help="materializable canonical workload; repeat for a validation family",
     )
     parser.add_argument("--output", type=pathlib.Path, required=True)
-    parser.add_argument("--timeout-seconds", type=int, default=900)
+    parser.add_argument(
+        "--timeout-seconds", type=int, default=OFFICIAL_TIMEOUT_SECONDS
+    )
     parser.add_argument("--max-cross-product", type=int, default=100_000_000)
     parser.add_argument("--buckets", type=int, default=128)
     parser.add_argument("--family-level", type=float, default=0.01)

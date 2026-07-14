@@ -186,7 +186,7 @@ anchor-validate --benchmark build/anchor_bench \
 
 anchor-capture-machine --benchmark build/anchor_bench \
   --validation-report results/validation.json \
-  --memory-cap-bytes 68719476736 --cpu-core 0 --monitor-cpu-core 2 \
+  --memory-cap-bytes 1020054732800 --cpu-core 0 --monitor-cpu-core 2 \
   --memory-poll-interval-ms 5 --numa-node 0 \
   --code-commit COMMIT --memory-configuration 'FROZEN_DMI_DESCRIPTION' \
   --build-flags=-O3 --build-flags=-DNDEBUG \
@@ -204,7 +204,8 @@ the same workload and sampling seed. The external memory monitor reads
 `/proc/<pid>/status` `VmRSS` at fixed 5 ms absolute intervals and captures the
 input, baseline, post-prepare, and sampled peak values through an acknowledged
 event protocol. No delegated cgroup or privileged write is required. Both the
-main and setup safety timeouts are 900 seconds. The suite defaults to `oneshot`;
+main and setup safety timeouts are 1800 seconds (30 minutes). The sampled RSS
+cap is 950 GiB. The suite defaults to `oneshot`;
 `count-only` and `prepared-query` run only when explicitly requested.
 
 Run the complete single-run matrix (12 sweeps, 55 configurations, four
