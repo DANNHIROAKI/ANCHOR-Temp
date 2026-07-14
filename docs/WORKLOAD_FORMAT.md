@@ -11,7 +11,7 @@ The header is exactly 128 bytes. Integer fields are unsigned and little-endian.
 
 | Offset | Type | Field |
 |---:|---|---|
-| 0 | `char[8]` | `ANCHORW\0` |
+| 0 | `char[8]` | `ANCHORW\0` | 
 | 8 | `uint16` | format version (`1`) |
 | 10 | `uint8` | byte order (`1` = little-endian) |
 | 11 | `uint8` | endpoint type (`1` = binary64, `2` = int64) |
